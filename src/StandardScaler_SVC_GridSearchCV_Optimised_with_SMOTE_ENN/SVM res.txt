@@ -1,0 +1,18 @@
+-----------------StandardScaler SVC GridSearchCV Optimised with SMOTE ENN with PCA--------------------
+-----------------Best Param Overview--------------------
+Best score: 0.7373
+Using the following parameters:
+{'linearsvc__C': 3, 'linearsvc__max_iter': 1800, 
+'linearsvc__tol': 0.0001, 'pca__n_components': 7}
+-----------------Scoring Model--------------------
+              precision    recall  f1-score   support
+
+           0       0.72      0.77      0.74     19349
+           1       0.76      0.70      0.73     20029
+
+    accuracy                           0.74     39378
+   macro avg       0.74      0.74      0.74     39378
+weighted avg       0.74      0.74      0.74     39378
+
+[[14894  4455]
+ [ 5909 14120]]

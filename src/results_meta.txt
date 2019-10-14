@@ -1,0 +1,87 @@
+#############
+ITER 1
+#############
+Before SMOTE:  [(0, 63315), (1, 14910)]
+SMOTE ENN:  [(0, 63315), (1, 55847)]
+-----------------Meta classifier with RandomForestClassifier--------------------
+-----------------Best Param Overview--------------------
+Best score: 0.9063
+Using the following parameters:
+{'randomforestclassifier__min_samples_split': 0.005, 'randomforestclassifier__n_estimators': 90}
+-----------------Scoring Model--------------------
+              precision    recall  f1-score   support
+
+           0       0.92      0.90      0.91     21226
+           1       0.89      0.91      0.90     18098
+
+    accuracy                           0.91     39324
+   macro avg       0.91      0.91      0.91     39324
+weighted avg       0.91      0.91      0.91     39324
+
+[[19207  2019]
+ [ 1648 16450]]
+
+#############
+ITER 2
+#############
+Before SMOTE:  [(0, 63315), (1, 14910)]
+SMOTE ENN:  [(0, 63315), (1, 55946)]
+-----------------Meta classifier with randForest GridSearchCV Optimised--------------------
+-----------------Best Param Overview--------------------
+Best score: 0.9083
+Using the following parameters:
+{'randomforestclassifier__min_samples_split': 0.005, 'randomforestclassifier__n_estimators': 90}
+-----------------Scoring Model--------------------
+              precision    recall  f1-score   support
+
+           0       0.92      0.91      0.91     21032
+           1       0.89      0.90      0.90     18325
+
+    accuracy                           0.90     39357
+   macro avg       0.90      0.90      0.90     39357
+weighted avg       0.90      0.90      0.90     39357
+
+[[19057  1975]
+ [ 1769 16556]]
+
+############
+ITER 3
+############
+-----------------StandardScaler KNN GridSearchCV Optimised with SMOTE ENN Meta classifier--------------------
+-----------------Best Param Overview--------------------
+Best score: 0.9105
+Using the following parameters:
+{'knn__algorithm': 'ball_tree', 'knn__leaf_size': 10, 'knn__n_neighbors': 4, 'nca__max_iter': 1200, 'nca__n_components': 2, 'nca__tol': 0.1}
+-----------------Scoring Model--------------------
+              precision    recall  f1-score   support
+
+           0       0.91      0.91      0.91      1572
+           1       0.90      0.91      0.90      1428
+
+    accuracy                           0.91      3000
+   macro avg       0.91      0.91      0.91      3000
+weighted avg       0.91      0.91      0.91      3000
+
+[[1424  148]
+ [ 135 1293]]
+
+#########
+# ITER 3
+#########
+-----------------StandardScaler Tree randForest GridSearchCV Optimised with SMOTE ENN Meta classifier--------------------
+-----------------Best Param Overview--------------------
+Best score: 0.9080
+Using the following parameters:
+{'randomforestclassifier__min_samples_split': 0.005, 'randomforestclassifier__n_estimators': 90}
+-----------------Scoring Model--------------------
+              precision    recall  f1-score   support
+
+           0       0.92      0.90      0.91     21248
+           1       0.89      0.90      0.90     18081
+
+    accuracy                           0.90     39329
+   macro avg       0.90      0.90      0.90     39329
+weighted avg       0.90      0.90      0.90     39329
+
+[[19189  2059]
+ [ 1734 16347]]

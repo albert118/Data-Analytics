@@ -1,0 +1,17 @@
+-----------------StandardScaler Tree randForest GridSearchCV Optimised with SMOTE ENN Meta classifier--------------------
+-----------------Best Param Overview--------------------
+Best score: 0.9076
+Using the following parameters:
+{'randomforestclassifier__min_samples_split': 0.005, 'randomforestclassifier__n_estimators': 90}
+-----------------Scoring Model--------------------
+              precision    recall  f1-score   support
+
+           0       0.92      0.90      0.91     21456
+           1       0.89      0.91      0.90     17897
+
+    accuracy                           0.90     39353
+   macro avg       0.90      0.90      0.90     39353
+weighted avg       0.90      0.90      0.90     39353
+
+[[19382  2074]
+ [ 1683 16214]]

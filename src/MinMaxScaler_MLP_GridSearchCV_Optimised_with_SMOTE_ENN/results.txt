@@ -1,0 +1,21 @@
+-----------------MinMaxScaler MLP GridSearchCV Optimised with SMOTE ENN--------------------
+-----------------Best Param Overview--------------------
+Best score: 0.8802
+Using the following parameters:
+{'mlp__activation': 'logistic', 'mlp__alpha': 0.01, 
+'mlp__beta_1': 0.9, 'mlp__beta_2': 0.9, 
+'mlp__hidden_layer_sizes': (100, 4), 'mlp__max_iter': 500}
+-----------------Scoring Model--------------------
+              precision    recall  f1-score   support
+
+           0       0.80      0.89      0.84     18659
+           1       0.89      0.79      0.84     20671
+
+    accuracy                           0.84     39330
+   macro avg       0.84      0.84      0.84     39330
+weighted avg       0.85      0.84      0.84     39330
+
+[[16633  2026]
+ [ 4254 16417]]
+
+function: GET_NN took 1688.4937s
