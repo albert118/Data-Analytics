@@ -34,14 +34,10 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from joblib import (Memory, dump, load)
 
-FIELDS = ['Quote_ID', 'Field_info1', 'Field_info2', 'Field_info3', 'Field_info4', 'Coverage_info1', 'Coverage_info2', 'Coverage_info3', 
-	'Sales_info1', 'Sales_info2', 'Sales_info3', 'Sales_info4', 'Sales_info5', 'Personal_info1', 
-	'Personal_info2', 'Personal_info3', 'Personal_info4', 'Property_info1', 'Property_info3', 
-	'Property_info4', 'Property_info5', 'Geographic_info1', 'Geographic_info2', 'Geographic_info3', 
-	'Geographic_info4', 'Geographic_info5']
 
-RANDOM_STATE = None
-CV = 10
+FIELDS = Prep().drop(columns=['Quote_Flag']).columns.tolist()  # the column names
+RANDOM_STATE = None # probably controls seeding idk
+CV = 10 # cross validation number, lower is quicker but higher is more robust
 
 ################################################################################
 # Utility methods
@@ -61,7 +57,7 @@ def save_model(model, results, grid_search, unique_test_name):
 	if not os.path.exists(fn):
 		os.system("mkdir %s" % fn)
 	
-	results.to_csv(fn+ '\\ida_a3_13611165.csv', index=False)
+	results.to_csv(fn+ '\\ida_a3_12590941.csv', index=False)
 	dump(model, (fn + '\\' + fn + '.joblib'))
 	res = pd.DataFrame(grid_search.cv_results_)
 	res.to_csv((fn + '\\grid_search_params.csv'), index=False)
@@ -149,18 +145,18 @@ def get_meta():
 
 def gen_Preds(model):
 	df = Prep('test')
-	IDs = df.Quote_ID
-	X = df.drop(['Quote_ID'], axis=1).values
+	IDs = df.Quote_Id
+	X = df.drop(['Quote_Id'], axis=1).values
 	prediction = model.predict(X)
-	results = pd.DataFrame(data=prediction, columns=['QuoteConversion_Flag'])
+	results = pd.DataFrame(data=prediction, columns=['Quote_Flag'])
 	results = pd.concat([IDs, results], axis=1)
-	results.to_csv("ida_a3_13611165.csv", index=False)
+	results.to_csv("ida_a3_12590941.csv", index=False)
 	return
 
 def gen_meta_preds():
 	df = Prep('test')
-	IDs = df.Quote_ID
-	X = df.drop(['Quote_ID'], axis=1).values
+	IDs = df.Quote_Id
+	X = df.drop(['Quote_Id'], axis=1).values
 
 	models = ["modelA.joblib", "modelB.joblib", "modelC.joblib", "modelD.joblib"]
 	model_list=[]
@@ -176,28 +172,29 @@ def gen_meta_preds():
 		meta_res = pd.concat([meta_res, pd.DataFrame(model.predict(X))], axis=1)
 
 	meta = load("meta.joblib")
-	prediction = meta.predict(meta_res.drop(["Quote_ID"],axis=1))
-	results = pd.DataFrame(data=prediction, columns=['QuoteConversion_Flag'])
+	prediction = meta.predict(meta_res.drop(["Quote_Id"],axis=1))
+	results = pd.DataFrame(data=prediction, columns=['Quote_Flag'])
 	results = pd.concat([IDs, results], axis=1)
-	results.to_csv("ida_a3_13611165.csv", index=False)
+	results.to_csv("ida_a3_12590941.csv", index=False)
 	return
 
 ################################################################################
 # Sampling methods
 ################################################################################
 def smoter(df):
-	IDs = df.Quote_ID
-	target = df.QuoteConversion_Flag
-	data = df.drop(['QuoteConversion_Flag'],axis=1).values
+	IDs = df.Quote_Id
+	target = df.Quote_Flag
+
+	data = df.drop(['Quote_Flag'],axis=1).values
 	print("Before SMOTE: ", sorted(Counter(target).items()))
 
-	enn = ENN(sampling_strategy="not majority", kind_sel="mode", n_neighbors=5, n_jobs=-1, random_state=RANDOM_STATE)
+	enn = ENN(sampling_strategy="not majority", kind_sel="mode", n_neighbors=5, n_jobs=-1)
 	smote_enn = SMOTEENN(enn=enn, random_state=RANDOM_STATE)
 	X_resampled, y_resampled = smote_enn.fit_resample(data, target)
 	print("SMOTE ENN: ", sorted(Counter(y_resampled).items()))
 
 	data = pd.DataFrame(data = X_resampled, columns = FIELDS)
-	target = pd.DataFrame(data = y_resampled, columns = ['QuoteConversion_Flag'])
+	target = pd.DataFrame(data = y_resampled, columns = ['Quote_Flag'])
 
 	return data, target
 
@@ -209,14 +206,14 @@ def _NN(X, y, *args, **kwargs):
 	# Create a temporary folder to store the transformers of the pipeline
 	cachedir = mkdtemp()
 	memory = Memory(location=cachedir, verbose=10)
-	IDs = X.Quote_ID
-	X = X.drop(['Quote_ID'], axis=1).values
+	IDs = X.Quote_Id
+	X = X.drop(['Quote_Id'], axis=1).values
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=RANDOM_STATE)
 	
 	param_grid = {
 		'mlp__activation': ["logistic"], 
 		'mlp__alpha': [0.1, 0.01],
-		'mlp__hidden_layer_sizes': [(100, 2), (100, 4)],
+		'mlp__hidden_layer_sizes': [(10, 2), (10, 4)],
 		'mlp__max_iter': [500],
 		'mlp__beta_1' : [0.8, 0.9],
 		'mlp__beta_2': [0.88, 0.90, 0.99],
@@ -224,13 +221,13 @@ def _NN(X, y, *args, **kwargs):
 
 	mlp = MLP(early_stopping=True, validation_fraction = 0.25, random_state=RANDOM_STATE, solver='adam',learning_rate='adaptive')
 	model_pipe = Pipeline(steps=[('StandardScaler', StandardScaler()), ('mlp', mlp)], memory=memory)
-	grid = GridSearchCV(model_pipe, param_grid, cv=CV, iid=False, n_jobs=-1)
+	grid = GridSearchCV(model_pipe, param_grid, cv=CV, n_jobs=-1)
 
 	grid.fit(X_train, np.ravel(y_train)) 
 	prediction = grid.predict(X_test)
 	print_results(unique_test_name, grid, prediction, y_test)
 
-	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['QuoteConversion_Flag'])], axis=1)
+	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['Quote_Flag'])], axis=1)
 	save_model(grid.best_estimator_, results, grid, unique_test_name)
 	
 	# Delete the temporary cache before exiting
@@ -239,8 +236,8 @@ def _NN(X, y, *args, **kwargs):
 
 def _SVM(X, y, *args, **kwargs):
 	unique_test_name = 'StandardScaler SVC GridSearchCV Optimised with SMOTE ENN'
-	IDs = X.Quote_ID
-	X = X.drop(['Quote_ID'], axis=1).values
+	IDs = X.Quote_Id
+	X = X.drop(['Quote_Id'], axis=1).values
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=RANDOM_STATE)
 	
 	MAX_ITER = [1800]
@@ -261,12 +258,12 @@ def _SVM(X, y, *args, **kwargs):
 	unique_test_name = unique_test_name+' with PCA'
 	model_pipe_A = make_pipeline(MinMaxScaler(), pca, svc, memory=memory)
 	
-	grid = GridSearchCV(model_pipe_A, param_grid_A, cv=CV, iid=False, n_jobs=-1)
+	grid = GridSearchCV(model_pipe_A, param_grid_A, cv=CV, n_jobs=-1)
 	grid.fit(X_train, np.ravel(y_train)) 
 	prediction = grid.predict(X_test)
 	print_results(unique_test_name, grid, prediction, y_test)
 
-	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['QuoteConversion_Flag'])], axis=1)
+	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['Quote_Flag'])], axis=1)
 	save_model(grid.best_estimator_, results, grid, unique_test_name)
 	rmtree(cachedir)
 
@@ -277,12 +274,12 @@ def _SVM(X, y, *args, **kwargs):
 
 	model_pipe_B = make_pipeline(MinMaxScaler(), svc, memory=memory)
 	
-	grid = GridSearchCV(model_pipe_B, param_grid_B, cv=CV, iid=False, n_jobs=-1)
+	grid = GridSearchCV(model_pipe_B, param_grid_B, cv=CV, n_jobs=-1)
 	grid.fit(X_train, np.ravel(y_train)) 
 	prediction = grid.predict(X_test)
 	print_results(unique_test_name, grid, prediction, y_test)
 
-	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['QuoteConversion_Flag'])], axis=1)
+	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['Quote_Flag'])], axis=1)
 	save_model(grid.best_estimator_, results, grid, unique_test_name)
 	rmtree(cachedir)
 
@@ -296,8 +293,8 @@ def _KNN(X, y, *args, **kwargs):
 	# Create a temporary folder to store the transformers of the pipeline
 	cachedir = mkdtemp()
 	memory = Memory(location=cachedir, verbose=10)
-	IDs = X.Quote_ID
-	X = X.drop(['Quote_ID'], axis=1).values
+	IDs = X.Quote_Id
+	X = X.drop(['Quote_Id'], axis=1).values
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=3000, train_size=3000, random_state=RANDOM_STATE)
 	
 	param_grid = {
@@ -314,13 +311,13 @@ def _KNN(X, y, *args, **kwargs):
 	knn = KNeighborsClassifier(n_jobs=-1)
 
 	model = Pipeline(steps=[('scaler', StandardScaler()), ('nca', nca),('knn', knn)], memory=memory)
-	grid = GridSearchCV(model, param_grid,cv=CV, iid=False, n_jobs=-1)
+	grid = GridSearchCV(model, param_grid,cv=CV, n_jobs=-1)
 	grid.fit(X_train[:2200], np.ravel(y_train[:2200])) 
 
 	prediction = grid.predict(X_test)
 	print_results(unique_test_name, grid, prediction, y_test)
 
-	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['QuoteConversion_Flag'])], axis=1)
+	results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['Quote_Flag'])], axis=1)
 	save_model(grid.best_estimator_, results, grid, unique_test_name)
 	
 	# Delete the temporary cache before exiting
@@ -330,8 +327,8 @@ def _KNN(X, y, *args, **kwargs):
 def _TREES(X, y, *args, **kwargs):
 	
 	# Create a temporary folder to store the transformers of the pipeline
-	IDs = X.Quote_ID
-	X = X.drop(['Quote_ID'], axis=1).values
+	IDs = X.Quote_Id
+	X = X.drop(['Quote_Id'], axis=1).values
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=RANDOM_STATE)
 	
 	randForest = RAND(n_jobs=-1, random_state=RANDOM_STATE)
@@ -355,12 +352,12 @@ def _TREES(X, y, *args, **kwargs):
 		memory = Memory(location=cachedir, verbose=10)
 
 		model = make_pipeline(StandardScaler(), models[i], memory=memory)
-		grid = GridSearchCV(model, params[i], cv=CV, iid=False, n_jobs=-1)
+		grid = GridSearchCV(model, params[i], cv=CV, n_jobs=-1)
 		grid.fit(X_train, np.ravel(y_train)) 
 		
 		prediction = grid.predict(X_test)
 		print_results(unique_test_name, grid, prediction, y_test)
-		results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['QuoteConversion_Flag'])], axis=1)
+		results = pd.concat([IDs, pd.DataFrame(data=prediction, columns=['Quote_Flag'])], axis=1)
 		save_model(grid.best_estimator_, results, grid, unique_test_name)
 		
 		rmtree(memory)
@@ -370,8 +367,8 @@ def _TREES(X, y, *args, **kwargs):
 def _meta_pred(X, y, model_list, *args, **kwargs):
 	unique_test_name = " Meta classifier"
 	# create blank data frame with IDs then merge all classifier predictions into one dataframe
-	IDs = X.Quote_ID
-	X_test = X.drop(["Quote_ID"], axis=1)
+	IDs = X.Quote_Id
+	X_test = X.drop(["Quote_Id"], axis=1)
 	meta_res = pd.DataFrame(IDs)
 
 	for model in model_list:

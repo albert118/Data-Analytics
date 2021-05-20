@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing as pre
+
+fn_testing = "Assignment3-UnknowDataREAL.csv"
+fn_training = "Assignment3-TrainingDataREAL.csv"
+
 ################################################################################
 
 
@@ -8,13 +12,14 @@ from sklearn import preprocessing as pre
 # data overview and sanity checks
 def Prep(*args, **kwargs):
 	if 'test' in args:
-		df = pd.read_csv("Assignment3_TestSet(1).csv")
+		df = pd.read_csv(fn_testing)
 	else:
-		df = pd.read_csv("Assignment3_TrainingSet(2).csv")
+		df = pd.read_csv(fn_training)
 
-	ID=df.Quote_ID
+	ID = df.Quote_Id
 	# Prop2 is constant all==0, Pers5 is approx. 50% data missing...
-	df = df.drop(['Personal_info5',"Property_info2", 'Quote_ID', 'Original_Quote_Date'], axis=1)
+	df = df.drop(['Personal_info5', "Property_info2",
+               'Quote_Id', 'Quote_Date'], axis=1)
 	# Get fields and get info on df
 	fields = []
 	for field in df:
@@ -40,6 +45,7 @@ def Prep(*args, **kwargs):
 	for dimension in label_fields:
 		le.fit(df[dimension])
 		df[dimension]= le.transform(df[dimension])
+	
 	#print("Categories fitted...")
 
 	# Checking low variance fields...
@@ -51,11 +57,12 @@ def Prep(*args, **kwargs):
 			fields.remove(field)
 			df=df.drop([field],axis=1)
 			print("Dropped: ", field)
+	
 	#print("No variance issues, all fields validated...")
 
 	# Results!
 	df = pd.concat([ID, df], axis = 1)
 	if 'file' in args:
-		df.to_csv("prep(1).csv", index=False)
+		df.to_csv("prep(lachlan).csv", index=False)
 
 	return df
