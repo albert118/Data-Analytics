@@ -17,7 +17,7 @@ django-authtools==1.7.0
 django-braces==1.14.0
 django-cors-headers==3.5.0
 django-crispy-forms==1.9.2
-django-debug-toolbar==2.2
+django-debug-toolbar==2.2.1
 django-environ==0.4.5
 django-excel-base==1.0.4
 django-excel-response2==3.0.2
