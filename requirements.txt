@@ -76,7 +76,7 @@ sphinxcontrib-serializinghtml==1.1.4
 tinycss2==1.0.2
 toml==0.10.1
 typed-ast==1.4.1
-urllib3==1.25.10
+urllib3==1.26.5
 virtualenv==20.0.31
 virtualenvwrapper-win==1.2.6
 watchdog==0.10.4
